@@ -10,8 +10,8 @@ python3 -m venv env
 
 source env/bin/activate
 
-pip install RPi.GPIO
-pip install board
-pip install neopixel
-pip install adafruit-blinka
-pip install adafruit-circuitpython-neopixel
+sudo /home/pi/parfum_2/env/bin/python pip install RPi.GPIO
+sudo /home/pi/parfum_2/env/bin/python pip install board
+sudo /home/pi/parfum_2/env/bin/python pip install neopixel
+sudo /home/pi/parfum_2/env/bin/python pip install adafruit-blinka
+sudo /home/pi/parfum_2/env/bin/python pip install adafruit-circuitpython-neopixel
