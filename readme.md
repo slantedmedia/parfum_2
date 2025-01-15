@@ -13,4 +13,4 @@
 
 ###Configurer le démarage automatique
 
-- `crontab -e` Et ecrire dedans : `@reboot /bin/bash /home/pi/parfum_2/start_up.sh`
+- `crontab -e` Et ecrire dedans : `@reboot /bin/bash /home/pi/parfum_2/start_up.sh` après les commentaires
