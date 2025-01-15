@@ -8,7 +8,7 @@ sudo apt install python3-venv
 
 python3 -m venv env
 
-source env/bin/activate
+source ./env/bin/activate
 
 /home/pi/parfum_2/env/bin/pip install RPi.GPIO
 /home/pi/parfum_2/env/bin/pip install board
