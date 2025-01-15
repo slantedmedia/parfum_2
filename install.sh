@@ -15,3 +15,5 @@ sudo /home/pi/parfum_2/env/bin/python pip install board
 sudo /home/pi/parfum_2/env/bin/python pip install neopixel
 sudo /home/pi/parfum_2/env/bin/python pip install adafruit-blinka
 sudo /home/pi/parfum_2/env/bin/python pip install adafruit-circuitpython-neopixel
+
+echo 'Finish'
