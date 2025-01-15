@@ -17,7 +17,7 @@
 
 ### Mettre à jour le script
 
-Se placer dans le répertoire parfum_2:
+- Se placer dans le répertoire parfum_2:
 
 - `cd home/pi/parfum_2`
 
@@ -25,7 +25,7 @@ Se placer dans le répertoire parfum_2:
 
 ### Debugger le programme
 
-Se placer dans le répertoire parfum_2:
+- Se placer dans le répertoire parfum_2:
 
 - `cd home/pi/parfum_2`
 
