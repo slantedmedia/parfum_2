@@ -36,7 +36,7 @@ def listen_for_button_press():
         print("Écoute des événements ADB... Appuyez sur CTRL+C pour arrêter.")
 
         # Expression régulière pour détecter un événement spécifique (modifiez selon vos besoins)
-        button_event_pattern = re.compile(r'.*treeosk-pressed-17.*')
+        button_event_pattern = re.compile(r'.*treeosk-btn--17.*')
 
         while True:
             line = process.stdout.readline()
