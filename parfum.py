@@ -36,7 +36,7 @@ def listen_for_button_press():
         print("Écoute des événements ADB... Appuyez sur CTRL+C pour arrêter.")
 
         # Expression régulière pour détecter un événement spécifique (modifiez selon vos besoins)
-        button_event_pattern = re.compile(r'.*treeosk-btn-17.*')
+        button_event_pattern = re.compile(r'.*treeosk-btn-17*')
 
         while True:
             line = process.stdout.readline()
@@ -70,7 +70,7 @@ def handle_button_event(event_line):
             pixels.fill((255, 160, 197))
             pixels.show()
             GPIO.setup(4, GPIO.OUT)  # Broche 17 configurée comme sortie
-            time.sleep(9)
+            time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()
             GPIO.cleanup(4)
