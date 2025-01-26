@@ -7,9 +7,7 @@ source ./env/bin/activate
 /home/pi/parfum_2/env/bin/pip install RPi.GPIO
 /home/pi/parfum_2/env/bin/pip install board
 /home/pi/parfum_2/env/bin/pip install adafruit-blinka
-/home/pi/parfum_2/env/bin/pip install adafruit-circuitpython-neopixel
-/home/pi/parfum_2/env/bin/pip install neopixel
 /home/pi/parfum_2/env/bin/pip uninstall adafruit-circuitpython-neopixel
-/home/pi/parfum_2/env/bin/pip install adafruit-circuitpython-neopixel
+/home/pi/parfum_2/env/bin/pip install neopixel
 
 echo 'Finish'
