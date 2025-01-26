@@ -21,10 +21,6 @@ last_event_time = 0  # Stocke l'horodatage du dernier événement
 event_cooldown = 2  # Temps minimum (en secondes) entre deux impulsions
 event_handled = set()  # Ensemble pour mémoriser les événements traités
 
-GPIO.cleanup()
-GPIO.setmode(GPIO.BCM)  # Utiliser le mode BCM pour les numéros de broches GPIO
-print("GPIO clean avec succès.")
-
 # Exécuter la commande adb logcat -c
 def clear_logcat():
     try:
