@@ -67,7 +67,7 @@ def handle_button_event(event_line):
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
             print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 160, 197))
+            pixels.fill((214, 63, 39))
             pixels.show()
             GPIO.setup(4, GPIO.OUT)  # Broche 17 configurée comme sortie
             time.sleep(5)
