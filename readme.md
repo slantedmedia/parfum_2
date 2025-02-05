@@ -5,7 +5,7 @@
 - `su pi`
 - `treeosk`
 
-- `sudo apt-get install git`
+- `sudo apt-get install git adb`
 
 - `git clone https://github.com/JulienJcbs/parfum_2.git`
 
