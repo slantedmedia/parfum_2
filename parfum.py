@@ -9,7 +9,7 @@ import neopixel
 GPIO.setmode(GPIO.BCM)  # Mode BCM pour la numérotation des broches
 GPIO.setwarnings(False)
 pixel_pin = board.D18
-num_pixels = 16
+num_pixels = 100
 ORDER = neopixel.GRB
 pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=False, pixel_order=ORDER)
 
@@ -67,7 +67,7 @@ def handle_button_event(event_line):
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
             print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((214, 63, 39))
+            pixels.fill((255, 255, 255))
             pixels.show()
             GPIO.setup(4, GPIO.OUT)  # Broche 17 configurée comme sortie
             time.sleep(5)
