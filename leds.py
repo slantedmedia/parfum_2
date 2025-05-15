@@ -5,7 +5,7 @@ import board
 import neopixel
 import os
 
-spiral_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]  
+spiral_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]  
 
 # Configuration GPIO
 GPIO.setmode(GPIO.BCM)
@@ -13,10 +13,10 @@ GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Configure GPIO17 avec pull-
 
 # Configuration des LEDs
 pixel_pin = board.D21
-num_pixels = 12
+num_pixels = 36
 pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=False, pixel_order=neopixel.GRB)
 
-pixels.fill((0, 0, 0))
+pixels.fill((255, 255, 255))
 pixels.show()
 
 # Variables pour éviter les répétitions
@@ -36,7 +36,7 @@ def handle_button_event(event_line):
     event_handled.add(event_line)
 
     print("Bouton pressé détecté ! Activation du diffuseur.")
-    spiral_animation((0, 255, 0))  # Ajout de la couleur verte
+    spiral_animation((255, 105, 180))  # Ajout de la couleur rose
     time.sleep(5)  # Laisser actif 5 secondes
     spiral_animation_remove()  # Correction ici aussi
 
@@ -50,7 +50,7 @@ def spiral_animation(color, delay=0.05):
 # Fonction pour éteindre en spirale (inverse)
 def spiral_animation_remove(delay=0.05):
     for i in reversed(spiral_order):  # Parcourt en sens inverse
-        pixels[i] = (0, 0, 0)  # Éteint LED
+        pixels[i] = (255, 255, 255)  # Éteint LED
         pixels.show()
         time.sleep(delay)
 
