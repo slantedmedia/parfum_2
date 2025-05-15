@@ -37,7 +37,7 @@ def handle_button_event(event_line):
 
     print("Bouton pressé détecté ! Activation du diffuseur.")
     spiral_animation((255, 105, 180))  # Ajout de la couleur rose
-    time.sleep(2.4)  # Laisser actif 3.4 secondes
+    time.sleep(1.4)  # Laisser actif 3.4 secondes
     spiral_animation_remove()  # Correction ici aussi
 
 # Fonction pour allumer en spirale
