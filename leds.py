@@ -21,7 +21,7 @@ pixels.show()
 
 # Variables pour éviter les répétitions
 last_event_time = 0
-event_cooldown = 3.4
+event_cooldown = 6
 event_handled = set()
 
 def handle_button_event(event_line):
@@ -37,7 +37,7 @@ def handle_button_event(event_line):
 
     print("Bouton pressé détecté ! Activation du diffuseur.")
     spiral_animation((255, 105, 180))  # Ajout de la couleur rose
-    time.sleep(5)  # Laisser actif 5 secondes
+    time.sleep(3.4)  # Laisser actif 3.4 secondes
     spiral_animation_remove()  # Correction ici aussi
 
 # Fonction pour allumer en spirale
