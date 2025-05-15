@@ -41,14 +41,14 @@ def handle_button_event(event_line):
     spiral_animation_remove()  # Correction ici aussi
 
 # Fonction pour allumer en spirale
-def spiral_animation(color, delay=0.03):
+def spiral_animation(color, delay=0.035):
     for i in spiral_order:
         pixels[i] = color  # Allume LED
         pixels.show()
         time.sleep(delay)
 
 # Fonction pour éteindre en spirale (inverse)
-def spiral_animation_remove(delay=0.03):
+def spiral_animation_remove(delay=0.035):
     for i in reversed(spiral_order):  # Parcourt en sens inverse
         pixels[i] = (255, 255, 255)  # Éteint LED
         pixels.show()
