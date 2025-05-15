@@ -48,7 +48,7 @@ def spiral_animation(color, delay=0.025):
         time.sleep(delay)
 
 # Fonction pour éteindre en spirale (inverse)
-def spiral_animation_remove(delay=0.05):
+def spiral_animation_remove(delay=0.025):
     for i in reversed(spiral_order):  # Parcourt en sens inverse
         pixels[i] = (255, 255, 255)  # Éteint LED
         pixels.show()
