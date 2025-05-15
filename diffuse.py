@@ -18,7 +18,7 @@ GPIO.cleanup(23)
 
 # Variables pour éviter les répétitions
 last_event_time = 0
-event_cooldown = 8.6
+event_cooldown = 6
 event_handled = set()
 
 def handle_button_event(event_line):
