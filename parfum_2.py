@@ -37,6 +37,7 @@ def listen_for_button_press():
         button_event_pattern_17 = re.compile(r'.*treeosk-btn-17*')
         button_event_pattern_22 = re.compile(r'.*treeosk-btn-22*')
         button_event_pattern_27 = re.compile(r'.*treeosk-btn-27*')
+        button_event_pattern_18 = re.compile(r'.*treeosk-btn-18*')
 
         while True:
             line = process.stdout.readline()
@@ -54,6 +55,10 @@ def listen_for_button_press():
             if button_event_pattern_27.search(line):
                 print(f"Événement détecté : {line.strip()}")
                 handle_button_event_27(line.strip())
+                
+            if button_event_pattern_18.search(line):
+                print(f"Événement détecté : {line.strip()}")
+                handle_button_event_18(line.strip())
 
     except KeyboardInterrupt:
         print("Arrêt de l'écoute des événements.")
@@ -86,6 +91,30 @@ def handle_button_event_17(event_line):
     else:
         print("Ignoré : Appui détecté trop rapidement.")
 
+def handle_button_event_18(event_line):
+    global last_event_time, event_handled
+
+    current_time = time.time()
+    if current_time - last_event_time >= event_cooldown:
+        if event_line not in event_handled:
+            last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
+            event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
+            print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
+            print("Envoi d'une impulsion sur la broche 17...")
+            pixels.fill((255, 240, 0))
+            pixels.show()
+            GPIO.setup(18, GPIO.OUT)  # Broche 17 configurée comme sortie
+            time.sleep(5)
+            pixels.fill((0, 0, 0))
+            pixels.show()
+            GPIO.cleanup(18)
+            clear_logcat()
+
+        else:
+            print("Ignoré : L'événement a déjà été traité.")
+    else:
+        print("Ignoré : Appui détecté trop rapidement.")
+
 def handle_button_event_22(event_line):
     global last_event_time, event_handled
 
@@ -102,7 +131,7 @@ def handle_button_event_22(event_line):
             time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()
-            GPIO.cleanup(27)
+            GPIO.cleanup(22)
             clear_logcat()
 
         else:
