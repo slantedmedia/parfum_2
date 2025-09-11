@@ -34,10 +34,10 @@ def listen_for_button_press():
         process = subprocess.Popen(['adb', 'logcat'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         print("Écoute des événements ADB... Appuyez sur CTRL+C pour arrêter.")
 
-        button_event_pattern_17 = re.compile(r'.*treeosk-btn-17*')
-        button_event_pattern_22 = re.compile(r'.*treeosk-btn-22*')
-        button_event_pattern_27 = re.compile(r'.*treeosk-btn-27*')
-        button_event_pattern_18 = re.compile(r'.*treeosk-btn-18*')
+        button_event_pattern_04 = re.compile(r'.*treeosk-btn-0?4.*')
+        button_event_pattern_17 = re.compile(r'.*treeosk-btn-17.*')
+        button_event_pattern_22 = re.compile(r'.*treeosk-btn-22.*')
+        button_event_pattern_27 = re.compile(r'.*treeosk-btn-27.*')
 
         while True:
             line = process.stdout.readline()
@@ -55,10 +55,10 @@ def listen_for_button_press():
             if button_event_pattern_27.search(line):
                 print(f"Événement détecté : {line.strip()}")
                 handle_button_event_27(line.strip())
-                
-            if button_event_pattern_18.search(line):
+            
+            if button_event_pattern_04.search(line):
                 print(f"Événement détecté : {line.strip()}")
-                handle_button_event_18(line.strip())
+                handle_button_event_04(line.strip())
 
     except KeyboardInterrupt:
         print("Arrêt de l'écoute des événements.")
@@ -77,7 +77,7 @@ def handle_button_event_17(event_line):
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
             print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 240, 0))
+            pixels.fill((255, 255, 255))
             pixels.show()
             GPIO.setup(17, GPIO.OUT)  # Broche 17 configurée comme sortie
             time.sleep(5)
@@ -91,7 +91,7 @@ def handle_button_event_17(event_line):
     else:
         print("Ignoré : Appui détecté trop rapidement.")
 
-def handle_button_event_18(event_line):
+def handle_button_event_04(event_line):
     global last_event_time, event_handled
 
     current_time = time.time()
@@ -100,14 +100,14 @@ def handle_button_event_18(event_line):
             last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 240, 0))
+            print("Envoi d'une impulsion sur la broche 04...")
+            pixels.fill((255, 255, 255))
             pixels.show()
-            GPIO.setup(18, GPIO.OUT)  # Broche 17 configurée comme sortie
+            GPIO.setup(4, GPIO.OUT)  # Broche 04 configurée comme sortie
             time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()
-            GPIO.cleanup(18)
+            GPIO.cleanup(4)
             clear_logcat()
 
         else:
@@ -124,10 +124,10 @@ def handle_button_event_22(event_line):
             last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 240, 0))
+            print("Envoi d'une impulsion sur la broche 22...")
+            pixels.fill((255, 255, 255))
             pixels.show()
-            GPIO.setup(22, GPIO.OUT)  # Broche 17 configurée comme sortie
+            GPIO.setup(22, GPIO.OUT)  # Broche 22 configurée comme sortie
             time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()
@@ -148,10 +148,10 @@ def handle_button_event_27(event_line):
             last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 240, 0))
+            print("Envoi d'une impulsion sur la broche 27...")
+            pixels.fill((255, 255, 255))
             pixels.show()
-            GPIO.setup(27, GPIO.OUT)  # Broche 17 configurée comme sortie
+            GPIO.setup(27, GPIO.OUT)  # Broche  configurée comme sortie
             time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()

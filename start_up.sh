@@ -18,4 +18,4 @@ while true; do
 done
 
 # Après que adb logcat -c ait réussi, exécuter le script Python
-sudo /home/pi/parfum_2/env/bin/python /home/pi/parfum_2/parfum.py
+sudo /home/pi/parfum_2/env/bin/python /home/pi/parfum_2/parfum_2.py
