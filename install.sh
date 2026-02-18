@@ -1,5 +1,7 @@
 sudo apt update && sudo apt install -y libopenblas-dev libatlas-base-dev gfortran python3-venv portaudio19-dev
 
+sudo apt-get install git adb
+
 python3 -m venv env
 
 source ./env/bin/activate
