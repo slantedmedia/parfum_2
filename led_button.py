@@ -22,26 +22,14 @@ pixel_pin1 = board.D18
 pixels1 = neopixel.NeoPixel(pixel_pin1, num_pixels1, brightness=0.1, auto_write=True, pixel_order=neopixel.GRB)
 
 
-try:
-        print("Bouton pressé détecté ! Activation du diffuseur.")
-        # pixels.fill((208,0,111))
-        pixels1.fill((208,0,111))
- 
-        while True:
-            time.sleep(1)
-            
-except KeyboardInterrupt:
-    print("Fin de programme")
-
-
- 
-
+# LED sur GPIO 18 : reste toujours allumée
+pixels1.fill((208, 0, 111))
 
 # Variables pour éviter les répétitions
 last_event_time = 0
 event_cooldown = 6
 
-def handle_button_event(event_line):
+def handle_button_event():
     global last_event_time
     if time.time() - last_event_time < event_cooldown:
         print("Délai de sécurité entre deux impulsions non respecté.")
@@ -49,17 +37,22 @@ def handle_button_event(event_line):
     last_event_time = time.time()
 
     print("Bouton pressé détecté ! Activation du diffuseur.")
-    pixels.fill((208, 0, 111))  # Ajout de la couleur rose
+    pixels.fill((208, 0, 111))
     pixels.show()
-    time.sleep(5)  # Laisser actif 3.4 secondes
-    pixels.fill((0,0,0))
+    time.sleep(5)
+    pixels.fill((0, 0, 0))
     pixels.show()
 
 try:
     while True:
         if GPIO.input(17) == GPIO.LOW:
-            handle_button_event(str(time.time()))
+            handle_button_event()
             time.sleep(2)  # Anti-rebond
-        time.sleep(0.1)  # Pause pour économiser CPU
+        time.sleep(0.1)
+except KeyboardInterrupt:
+    print("Fin de programme")
 finally:
-    GPIO.cleanup()  # Nettoyage général des GPIO
+    pixels.fill((0, 0, 0))
+    pixels.show()
+    pixels1.fill((0, 0, 0))
+    GPIO.cleanup()
