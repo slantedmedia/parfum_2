@@ -17,6 +17,26 @@ num_pixels = 150
 pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=False, pixel_order=neopixel.GRB)
 
 
+num_pixels1 = 150
+pixel_pin1 = board.D18
+pixels1 = neopixel.NeoPixel(pixel_pin1, num_pixels1, brightness=0.1, auto_write=True, pixel_order=neopixel.GRB)
+
+
+try:
+        print("Bouton pressé détecté ! Activation du diffuseur.")
+        # pixels.fill((208,0,111))
+        pixels1.fill((208,0,111))
+ 
+        while True:
+            time.sleep(1)
+            
+except KeyboardInterrupt:
+    print("Fin de programme")
+
+
+ 
+
+
 # Variables pour éviter les répétitions
 last_event_time = 0
 event_cooldown = 6
