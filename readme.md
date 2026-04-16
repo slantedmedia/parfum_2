@@ -5,6 +5,8 @@
 - `su pi`
 - `treeosk`
 
+- `sudo apt update`
+
 - `sudo apt-get install git adb`
 
 - `git clone https://github.com/JulienJcbs/parfum_2.git`
@@ -14,6 +16,10 @@
 ## Configurer le démarage automatique
 
 - `crontab -e` Et ecrire dedans : `@reboot /bin/bash /home/pi/parfum_2/start_up.sh` après les commentaires
+
+- Pour led :
+
+- `crontab -e` Et ecrire dedans : `@reboot sudo /home/pi/parfum_2/env/bin/python /home/pi/parfum_2/led_static.py` après les commentaires
 
 ### Mettre à jour le script
 
