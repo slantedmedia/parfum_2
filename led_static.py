@@ -12,10 +12,10 @@ GPIO.setmode(GPIO.BCM)
 #GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Configure GPIO17 avec pull-up interne
  
 # Configuration des LEDs
-pixel_pin = board.D21
-num_pixels = 150
+# pixel_pin = board.D21
+# num_pixels = 150
 num_pixels1 = 150
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=True, pixel_order=neopixel.GRB)
+# pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=True, pixel_order=neopixel.GRB)
 pixel_pin1 = board.D18
 pixels1 = neopixel.NeoPixel(pixel_pin1, num_pixels1, brightness=0.1, auto_write=True, pixel_order=neopixel.GRB)
  
@@ -23,7 +23,7 @@ pixels1 = neopixel.NeoPixel(pixel_pin1, num_pixels1, brightness=0.1, auto_write=
  
 try:
         print("Bouton pressé détecté ! Activation du diffuseur.")
-        pixels.fill((208,0,111))
+        # pixels.fill((208,0,111))
         pixels1.fill((208,0,111))
  
         while True:
