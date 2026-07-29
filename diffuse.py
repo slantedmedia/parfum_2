@@ -34,8 +34,12 @@ SOUNDS = {
 # ALSA_DEV : sortie audio forcee. Le defaut d'ALSA est casse ici
 # ("Unknown PCM cards.pcm.front") -> on nomme la carte explicitement.
 # D'apres "aplay -l" sur ce Pi : carte 0 = HDMI, carte 1 = Headphones (jack 3.5mm).
-# Mettre "hw:0,0" pour sortir sur HDMI, ou None pour le defaut ALSA.
-ALSA_DEV = "hw:1,0"  # jack 3.5mm
+#
+# plughw et pas hw : hw exige le taux d'echantillonnage exact du fichier et
+# renvoie "no such device" / "cannot open" si la carte ne le supporte pas.
+# plughw insere la conversion automatique de format.
+# Alternatives : "plughw:0,0" (HDMI), "default", ou None (defaut ALSA).
+ALSA_DEV = "plughw:1,0"  # jack 3.5mm
 
 PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-o", f"dev:{ALSA_DEV}"] if ALSA_DEV else [])
 
