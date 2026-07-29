@@ -9,12 +9,19 @@ python3 -m venv env
 
 source ./env/bin/activate
 
+# pip de Buster (18.x) est trop vieux pour lire les wheels recents.
+# 24.0 = derniere version compatible Python 3.7.
+/home/pi/parfum_2/env/bin/pip install --upgrade "pip<25"
+
 /home/pi/parfum_2/env/bin/pip install RPi.GPIO
 
 # NE PAS ajouter "pip install board" ni "pip install neopixel" : ce sont des paquets PyPI
 # sans rapport qui masquent les vrais modules. board et neopixel viennent d'Adafruit-Blinka
 # et adafruit-circuitpython-neopixel ci-dessous. C'est le bug qui a casse l'install avant.
-/home/pi/parfum_2/env/bin/pip install Adafruit-Blinka==8.50.0 adafruit-circuitpython-busdevice==5.2.10 adafruit-circuitpython-connectionmanager==3.1.2 adafruit-circuitpython-neopixel==6.3.13 adafruit-circuitpython-pixelbuf==2.0.6 adafruit-circuitpython-requests==4.1.8 adafruit-circuitpython-typing==1.11.2 Adafruit-PlatformDetect==3.76.1 Adafruit-PureIO==1.1.11
+# adafruit-circuitpython-typing : 1.10.2 et pas 1.11.2. A partir de 1.10.3 le paquet
+# exige Python >=3.8, or Raspbian Buster fournit Python 3.7 -> "could not find a version
+# that satisfies the requirement". Blinka accepte n'importe quelle version de typing.
+/home/pi/parfum_2/env/bin/pip install Adafruit-Blinka==8.50.0 adafruit-circuitpython-busdevice==5.2.10 adafruit-circuitpython-connectionmanager==3.1.2 adafruit-circuitpython-neopixel==6.3.13 adafruit-circuitpython-pixelbuf==2.0.6 adafruit-circuitpython-requests==4.1.8 adafruit-circuitpython-typing==1.10.2 Adafruit-PlatformDetect==3.76.1 Adafruit-PureIO==1.1.11
 
 
 echo 'Finish'
