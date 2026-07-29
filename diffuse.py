@@ -1,48 +1,102 @@
-import RPi.GPIO as GPIO
-import time
-import subprocess
-import board
-import neopixel
 import os
-
-# Exécuter aplay avec sudo en incluant les variables d'environnement nécessaires
-def play_sound():
-    command = "sudo aplay /home/pi/parfum_2/sound_fixed.wav"
-    subprocess.Popen(command, shell=True, env={**os.environ, "DISPLAY": ":0", "XDG_RUNTIME_DIR": "/run/user/1000"})
-
-# Configuration GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Configure GPIO17 avec pull-up interne
-GPIO.setup(23, GPIO.OUT)  # Configure GPIO18 en sortie
-GPIO.cleanup(23)
-
-# Variables pour éviter les répétitions
-last_event_time = 0
-event_cooldown = 6
-event_handled = set()
-
-def handle_button_event(event_line):
-    global last_event_time, event_handled
-    if time.time() - last_event_time < event_cooldown:
-        print("Délai de sécurité entre deux impulsions non respecté.")
-        return
-    if event_line in event_handled:
-        print("Cet événement a déjà été traité.")
-        return
-    last_event_time = time.time()
-    event_handled.add(event_line)
-
-    print("Bouton pressé détecté ! Activation du diffuseur.")
-    GPIO.setup(23, GPIO.OUT)
-    play_sound()
-    time.sleep(5)  # Laisser actif 6 secondes
-    GPIO.cleanup(23)
+import subprocess
+import sys
+import time
 
 try:
-    while True:
-        if GPIO.input(17) == GPIO.LOW:
-            handle_button_event(str(time.time()))
-            time.sleep(2)  # Anti-rebond
-        time.sleep(0.1)  # Pause pour économiser CPU
-finally:
-    GPIO.cleanup()  # Nettoyage général des GPIO
+    import RPi.GPIO as GPIO
+except ImportError:
+    GPIO = None  # machine de dev / --selftest
+
+BASE = "/home/pi/parfum_2/sounds"
+SHARED = f"{BASE}/T05.wav"  # boutons 5 a 9
+
+# Broche BCM -> fichier son (boutons du telephone).
+# Boutons 0-4 : un son chacun. Boutons 5-9 : T05.wav pour tous.
+# NB: ces fichiers sont en Ogg malgre l'extension .wav -> ogg123 les lit, aplay non.
+SOUNDS = {
+    5: f"{BASE}/T00.wav",  # bouton 0
+    6: f"{BASE}/T01.wav",  # bouton 1
+    12: f"{BASE}/T02.wav",  # bouton 2
+    13: f"{BASE}/T03.wav",  # bouton 3
+    16: f"{BASE}/T04.wav",  # bouton 4
+    19: SHARED,  # bouton 5
+    20: SHARED,  # bouton 6
+    24: SHARED,  # bouton 7
+    25: SHARED,  # bouton 8
+    26: SHARED,  # bouton 9
+}
+
+# ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
+# (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
+# Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
+PLAYER = ["ogg123", "-q"]
+
+# Pas de env= : ogg123 parle directement a ALSA en root. L'ancien DISPLAY /
+# XDG_RUNTIME_DIR servait uniquement a PulseAudio sous sudo.
+
+DEBOUNCE = 0.25
+
+current = None
+
+
+def transitions(prev, cur):
+    """Broches passees de HIGH a LOW (appui). Pure -> testable."""
+    return [p for p in cur if cur[p] == 0 and prev.get(p, 1) == 1]
+
+
+def play(pin):
+    global current
+    path = SOUNDS[pin]
+    if not os.path.exists(path):
+        print(f"Fichier manquant: {path}")
+        return
+    if current and current.poll() is None:
+        current.terminate()
+        current.wait()  # recupere le process, evite les zombies
+    print(f"GPIO{pin} -> {os.path.basename(path)}")
+    current = subprocess.Popen(PLAYER + [path])
+
+
+def main():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    for pin in SOUNDS:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    for path in sorted(set(SOUNDS.values())):
+        if not os.path.exists(path):
+            print(f"ATTENTION fichier manquant au demarrage: {path}")
+
+    print(f"Ecoute de {len(SOUNDS)} boutons... CTRL+C pour arreter.")
+    prev = {p: 1 for p in SOUNDS}
+    last = {p: 0.0 for p in SOUNDS}  # par broche : un 2e appui rapide interrompt quand meme
+    try:
+        while True:
+            cur = {p: GPIO.input(p) for p in SOUNDS}
+            for pin in transitions(prev, cur):
+                if time.time() - last[pin] >= DEBOUNCE:
+                    last[pin] = time.time()
+                    play(pin)
+                    break  # un seul son a la fois (collision dans le meme scan : ordre du dict)
+            prev = cur
+            time.sleep(0.02)
+    except KeyboardInterrupt:
+        print("Arret.")
+    finally:
+        if current and current.poll() is None:
+            current.terminate()
+        GPIO.cleanup()
+
+
+if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        assert transitions({5: 1}, {5: 0}) == [5]  # appui -> declenche
+        assert transitions({5: 0}, {5: 0}) == []  # maintenu -> pas de repetition
+        assert transitions({5: 0}, {5: 1}) == []  # relache -> rien
+        assert len(SOUNDS) == 10  # 10 boutons
+        assert len(set(SOUNDS.values())) == 6  # T00-T05
+        assert len([p for p, s in SOUNDS.items() if s == SHARED]) == 5  # boutons 5-9
+        print("selftest OK")
+        sys.exit(0)
+    main()

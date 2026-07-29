@@ -2,6 +2,9 @@ sudo apt update && sudo apt install -y libopenblas-dev libatlas-base-dev gfortra
 
 sudo apt-get install git adb
 
+# ogg123 : lecture des .ogg (aplay ne sait pas decoder l'ogg)
+sudo apt install -y vorbis-tools
+
 python3 -m venv env
 
 source ./env/bin/activate
