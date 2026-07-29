@@ -31,10 +31,11 @@ SOUNDS = {
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
 # Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
 #
-# ALSA_DEV : sortie audio. None = peripherique par defaut d'ALSA.
-# Si erreur "Unknown PCM cards.pcm.front", le defaut est mauvais -> forcer la carte.
-# "aplay -l" donne les numeros : carte 0 peri. 0 -> "hw:0,0".
-ALSA_DEV = None  # ex: "hw:0,0" pour le jack 3.5mm
+# ALSA_DEV : sortie audio forcee. Le defaut d'ALSA est casse ici
+# ("Unknown PCM cards.pcm.front") -> on nomme la carte explicitement.
+# D'apres "aplay -l" sur ce Pi : carte 0 = HDMI, carte 1 = Headphones (jack 3.5mm).
+# Mettre "hw:0,0" pour sortir sur HDMI, ou None pour le defaut ALSA.
+ALSA_DEV = "hw:1,0"  # jack 3.5mm
 
 PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-o", f"dev:{ALSA_DEV}"] if ALSA_DEV else [])
 
