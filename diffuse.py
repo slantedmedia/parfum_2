@@ -30,7 +30,13 @@ SOUNDS = {
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
 # Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
-PLAYER = ["ogg123", "-q"]
+#
+# ALSA_DEV : sortie audio. None = peripherique par defaut d'ALSA.
+# Si erreur "Unknown PCM cards.pcm.front", le defaut est mauvais -> forcer la carte.
+# "aplay -l" donne les numeros : carte 0 peri. 0 -> "hw:0,0".
+ALSA_DEV = None  # ex: "hw:0,0" pour le jack 3.5mm
+
+PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-o", f"dev:{ALSA_DEV}"] if ALSA_DEV else [])
 
 # Pas de env= : ogg123 parle directement a ALSA en root. L'ancien DISPLAY /
 # XDG_RUNTIME_DIR servait uniquement a PulseAudio sous sudo.
