@@ -31,13 +31,28 @@ source ./env/bin/activate
 /home/pi/parfum_2/env/bin/pip install Adafruit-Blinka==8.50.0 adafruit-circuitpython-busdevice==5.2.10 adafruit-circuitpython-connectionmanager==3.1.2 adafruit-circuitpython-neopixel==6.3.13 adafruit-circuitpython-pixelbuf==2.0.6 adafruit-circuitpython-requests==4.1.8 adafruit-circuitpython-typing==1.10.1 Adafruit-PlatformDetect==3.76.1 Adafruit-PureIO==1.1.11
 
 
-# Verification : sans ca le script affiche "Finish" meme quand pip a echoue.
-# On ne teste que RPi.GPIO : c'est le seul module externe importe par diffuse.py.
-# board/neopixel servaient aux anciens scripts LED et ne sont plus utilises.
-if /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO" 2>/dev/null; then
-    echo 'Finish - modules OK'
-else
+# Verification : sans ca le script affiche "Finish" meme quand pip ou apt a echoue.
+# On teste les deux moities : le module Python ET le lecteur audio.
+# RPi.GPIO est le seul module externe importe par diffuse.py (board/neopixel
+# servaient aux anciens scripts LED et ne sont plus utilises).
+ERREUR=0
+
+if ! /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO" 2>/dev/null; then
     echo 'ECHEC : RPi.GPIO ne s importe pas. Detail :'
     /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO"
+    ERREUR=1
+fi
+
+# ogg123 vient d apt (vorbis-tools) : si apt est casse, il manque et le kiosque
+# detecte les boutons sans jamais emettre de son.
+if ! command -v ogg123 >/dev/null 2>&1; then
+    echo 'ECHEC : ogg123 introuvable -> pas de son.'
+    echo '        Verifier apt puis : sudo apt install -y vorbis-tools'
+    ERREUR=1
+fi
+
+if [ "$ERREUR" -eq 0 ]; then
+    echo 'Finish - modules OK'
+else
     exit 1
 fi
