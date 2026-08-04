@@ -32,10 +32,12 @@ source ./env/bin/activate
 
 
 # Verification : sans ca le script affiche "Finish" meme quand pip a echoue.
-if /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO, board, neopixel" 2>/dev/null; then
+# On ne teste que RPi.GPIO : c'est le seul module externe importe par diffuse.py.
+# board/neopixel servaient aux anciens scripts LED et ne sont plus utilises.
+if /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO" 2>/dev/null; then
     echo 'Finish - modules OK'
 else
-    echo 'ECHEC : les modules ne s importent pas. Detail :'
-    /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO, board, neopixel"
+    echo 'ECHEC : RPi.GPIO ne s importe pas. Detail :'
+    /home/pi/parfum_2/env/bin/python -c "import RPi.GPIO"
     exit 1
 fi
