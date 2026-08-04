@@ -5,23 +5,36 @@
 - `su pi`
 - `treeosk`
 
-## Raspbian Buster (EOL)
+## Raspbian Buster (EOL) — À FAIRE EN PREMIER
 
-Buster n'est plus maintenu : ses dépôts ont été déplacés vers `legacy.raspbian.org` et les
-fichiers Release sont expirés. Si `sudo apt update` échoue avec
-`Release file ... is not valid yet` ou `Repository ... has been moved`, désactiver le
-contrôle de date **avant** toute installation :
+**À taper à la main sur le Pi, avant tout `git clone` / `git pull`.** Buster n'est plus
+maintenu : ses dépôts ont été déplacés et les fichiers Release sont expirés, donc `apt`
+refuse tout — y compris l'installation de `git`. Impossible de récupérer le dépôt tant que
+ce n'est pas corrigé.
 
 ```bash
 echo 'Acquire::Check-Valid-Until "false";' | sudo tee /etc/apt/apt.conf.d/10no-check-valid-until
 sudo apt update
+sudo apt install -y git
 ```
 
-Vérifier que `/etc/apt/sources.list` pointe bien vers l'archive legacy :
+Si `apt update` échoue encore (`Repository ... has been moved`, `404 Not Found`), les URL
+des dépôts sont mortes : basculer sur l'archive legacy.
+
+```bash
+cat /etc/apt/sources.list                    # verifier avant
+sudo sed -i 's|raspbian.raspberrypi.org|legacy.raspbian.org|g; s|archive.raspbian.org|legacy.raspbian.org|g' /etc/apt/sources.list
+sudo apt update
+```
+
+Le fichier doit contenir :
 
 ```
 deb http://legacy.raspbian.org/raspbian/ buster main contrib non-free rpi
 ```
+
+Penser aussi à `/etc/apt/sources.list.d/raspi.list` (dépôt Raspberry Pi Foundation, fichier
+séparé) si des erreurs persistent.
 
 Buster fournit **Python 3.7**, ce qui contraint plusieurs versions dans `install.sh`
 (voir les commentaires du fichier) :
@@ -30,6 +43,8 @@ Buster fournit **Python 3.7**, ce qui contraint plusieurs versions dans `install
 - `python3-dev` + `build-essential` — `sysv-ipc` n'a pas de wheel ARM et doit être compilé
 
 ## Installation
+
+(sur Buster, faire d'abord la section ci-dessus : sans ça `apt` et `git` ne marchent pas)
 
 - `sudo apt update`
 
