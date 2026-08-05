@@ -46,11 +46,13 @@ SOUNDS = {
 # Mettre None pour laisser ALSA choisir.
 ALSA_DEV = "plughw:2,0"
 
-# -a : option dediee au peripherique de sortie. Ne PAS utiliser
-# "-o dev:..." : -o attend des paires cle=valeur, et "dev:plughw:1,0" est mal
-# analyse ("Unknown parameter 1") puis ignore -> ALSA retombe sur le
-# peripherique "front" qui n'existe pas sur un Pi.
-PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-a", ALSA_DEV] if ALSA_DEV else [])
+# Syntaxe ogg123 (man ogg123) : -d driver puis -o option:value.
+# Le nom d'option du pilote alsa est "dev". Pas de -a (option inexistante),
+# pas de "dev=" (c'est bien deux-points).
+# Si le peripherique n'existe pas, ogg123 affiche "Cannot open <dev>" puis
+# retombe sur le defaut ALSA "front" qui n'existe pas sur Pi -> les deux
+# erreurs apparaissent ensemble.
+PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-o", f"dev:{ALSA_DEV}"] if ALSA_DEV else [])
 
 # Pas de env= : ogg123 parle directement a ALSA en root. L'ancien DISPLAY /
 # XDG_RUNTIME_DIR servait uniquement a PulseAudio sous sudo.
@@ -87,6 +89,17 @@ def main():
     for path in sorted(set(SOUNDS.values())):
         if not os.path.exists(path):
             print(f"ATTENTION fichier manquant au demarrage: {path}")
+
+    # Test audio au demarrage : sinon l'erreur ALSA n'apparait qu'au 1er appui,
+    # noyee entre deux messages, et on ne sait pas quelles cartes existent.
+    if ALSA_DEV:
+        cartes = subprocess.run(["aplay", "-l"], capture_output=True, text=True)
+        if f"card {ALSA_DEV.split(':')[1].split(',')[0]}" not in cartes.stdout:
+            print(f"ATTENTION: {ALSA_DEV} n'existe pas. Cartes disponibles :")
+            for ligne in cartes.stdout.splitlines():
+                if ligne.startswith("card "):
+                    print("   ", ligne)
+            print("    -> corriger ALSA_DEV en tete de diffuse.py")
 
     print(f"Ecoute de {len(SOUNDS)} boutons... CTRL+C pour arreter.")
     prev = {p: 1 for p in SOUNDS}
