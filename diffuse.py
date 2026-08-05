@@ -29,6 +29,10 @@ SOUNDS = {
     26: SHARED,  # bouton 9
 }
 
+# Bouton stop : coupe le son en cours et n'en lance aucun. Cable comme les
+# autres (broche -> bouton -> GND). Mettre None pour le desactiver.
+STOP_PIN = 27
+
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
 # Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
@@ -67,23 +71,33 @@ def transitions(prev, cur):
     return [p for p in cur if cur[p] == 0 and prev.get(p, 1) == 1]
 
 
+def stop():
+    """Coupe le son en cours s'il y en a un. Sans effet sinon."""
+    global current
+    if current and current.poll() is None:
+        current.terminate()
+        current.wait()  # recupere le process, evite les zombies
+    current = None
+
+
 def play(pin):
     global current
     path = SOUNDS[pin]
     if not os.path.exists(path):
         print(f"Fichier manquant: {path}")
         return
-    if current and current.poll() is None:
-        current.terminate()
-        current.wait()  # recupere le process, evite les zombies
+    stop()  # le nouvel appui interrompt le son precedent
     print(f"GPIO{pin} -> {os.path.basename(path)}")
     current = subprocess.Popen(PLAYER + [path])
 
 
 def main():
+    # Toutes les broches surveillees : les sons + le bouton stop.
+    broches = list(SOUNDS) + ([STOP_PIN] if STOP_PIN else [])
+
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    for pin in SOUNDS:
+    for pin in broches:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     for path in sorted(set(SOUNDS.values())):
@@ -101,24 +115,28 @@ def main():
                     print("   ", ligne)
             print("    -> corriger ALSA_DEV en tete de diffuse.py")
 
-    print(f"Ecoute de {len(SOUNDS)} boutons... CTRL+C pour arreter.")
-    prev = {p: 1 for p in SOUNDS}
-    last = {p: 0.0 for p in SOUNDS}  # par broche : un 2e appui rapide interrompt quand meme
+    stop_txt = f" + stop sur GPIO{STOP_PIN}" if STOP_PIN else ""
+    print(f"Ecoute de {len(SOUNDS)} boutons{stop_txt}... CTRL+C pour arreter.")
+    prev = {p: 1 for p in broches}
+    last = {p: 0.0 for p in broches}  # par broche : un 2e appui rapide interrompt quand meme
     try:
         while True:
-            cur = {p: GPIO.input(p) for p in SOUNDS}
+            cur = {p: GPIO.input(p) for p in broches}
             for pin in transitions(prev, cur):
                 if time.time() - last[pin] >= DEBOUNCE:
                     last[pin] = time.time()
-                    play(pin)
+                    if pin == STOP_PIN:
+                        print(f"GPIO{pin} -> stop")
+                        stop()
+                    else:
+                        play(pin)
                     break  # un seul son a la fois (collision dans le meme scan : ordre du dict)
             prev = cur
             time.sleep(0.02)
     except KeyboardInterrupt:
         print("Arret.")
     finally:
-        if current and current.poll() is None:
-            current.terminate()
+        stop()
         GPIO.cleanup()
 
 
@@ -130,6 +148,8 @@ if __name__ == "__main__":
         assert len(SOUNDS) == 10  # 10 boutons
         assert len(set(SOUNDS.values())) == 6  # T00-T05
         assert len([p for p, s in SOUNDS.items() if s == SHARED]) == 5  # boutons 5-9
+        assert STOP_PIN not in SOUNDS  # le bouton stop ne joue aucun son
+        stop()  # sans rien en cours : ne doit pas lever
         print("selftest OK")
         sys.exit(0)
     main()
