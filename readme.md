@@ -52,8 +52,9 @@ Buster fournit **Python 3.7**, ce qui contraint plusieurs versions dans `install
 
 - `git clone https://github.com/slantedmedia/parfum_2.git`
 
-  Cloner **dans `/home/pi`** : tous les chemins des scripts sont en dur sur
-  `/home/pi/parfum_2`.
+  Le dossier peut être n'importe où (`/home/pi/parfum_2`, `/home/treeosk/parfum_2`, …) :
+  les scripts déduisent leur chemin tout seuls. Adapter les commandes ci-dessous à votre
+  emplacement réel.
 
 - `cd parfum_2 && sh ./install.sh`
 

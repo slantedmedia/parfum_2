@@ -8,7 +8,9 @@ try:
 except ImportError:
     GPIO = None  # machine de dev / --selftest
 
-BASE = "/home/pi/parfum_2/sounds"
+# Dossier des sons, relatif a ce fichier : marche quel que soit l utilisateur
+# (/home/pi/parfum_2 comme /home/treeosk/parfum_2) et depuis n importe quel cwd.
+BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sounds")
 SHARED = f"{BASE}/T05.wav"  # boutons 5 a 9
 
 # Broche BCM -> fichier son (boutons du telephone).
