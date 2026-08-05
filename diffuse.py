@@ -33,6 +33,12 @@ SOUNDS = {
 # autres (broche -> bouton -> GND). Mettre None pour le desactiver.
 STOP_PIN = 27
 
+# Polarite du bouton stop.
+# True  = repos HIGH, appui LOW (cablage normal vers GND, comme les 10 autres)
+# False = repos LOW, appui HIGH (bouton normalement ferme / cable vers 3.3V)
+# Si le son ne s'arrete qu'au relachement, c'est que cette valeur est inversee.
+STOP_ACTIF_BAS = True
+
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
 # Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
@@ -97,8 +103,12 @@ def main():
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    for pin in broches:
+    for pin in SOUNDS:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    if STOP_PIN:
+        # Pull oppose a l'etat de repos, sinon la broche flotte.
+        GPIO.setup(STOP_PIN, GPIO.IN,
+                   pull_up_down=GPIO.PUD_UP if STOP_ACTIF_BAS else GPIO.PUD_DOWN)
 
     for path in sorted(set(SOUNDS.values())):
         if not os.path.exists(path):
@@ -117,20 +127,37 @@ def main():
 
     stop_txt = f" + stop sur GPIO{STOP_PIN}" if STOP_PIN else ""
     print(f"Ecoute de {len(SOUNDS)} boutons{stop_txt}... CTRL+C pour arreter.")
-    prev = {p: 1 for p in broches}
+    # Etat initial lu sur les broches, pas suppose a 1 : si un bouton est
+    # maintenu (ou cable normalement ferme) au demarrage, supposer 1 creerait
+    # une fausse transition ou en manquerait une.
+    prev = {p: GPIO.input(p) for p in broches}
     last = {p: 0.0 for p in broches}  # par broche : un 2e appui rapide interrompt quand meme
     try:
         while True:
             cur = {p: GPIO.input(p) for p in broches}
-            for pin in transitions(prev, cur):
-                if time.time() - last[pin] >= DEBOUNCE:
-                    last[pin] = time.time()
+            appuis = transitions(prev, cur)
+
+            # Le bouton stop peut etre actif haut : dans ce cas c'est la
+            # transition inverse (LOW -> HIGH) qui correspond a l'appui.
+            if STOP_PIN and not STOP_ACTIF_BAS:
+                appuis = [p for p in appuis if p != STOP_PIN]
+                if prev[STOP_PIN] == 0 and cur[STOP_PIN] == 1:
+                    appuis.append(STOP_PIN)
+
+            # Le stop est traite en premier et hors du "un seul par scan" :
+            # s'il est presse en meme temps qu'un bouton son, il doit gagner.
+            if STOP_PIN in appuis and time.time() - last[STOP_PIN] >= DEBOUNCE:
+                last[STOP_PIN] = time.time()
+                print(f"GPIO{STOP_PIN} -> stop")
+                stop()
+            else:
+                for pin in appuis:
                     if pin == STOP_PIN:
-                        print(f"GPIO{pin} -> stop")
-                        stop()
-                    else:
+                        continue
+                    if time.time() - last[pin] >= DEBOUNCE:
+                        last[pin] = time.time()
                         play(pin)
-                    break  # un seul son a la fois (collision dans le meme scan : ordre du dict)
+                        break  # un seul son a la fois (collision : ordre du dict)
             prev = cur
             time.sleep(0.02)
     except KeyboardInterrupt:
