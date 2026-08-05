@@ -12,7 +12,17 @@ sudo apt install -y vorbis-tools
 
 python3 -m venv env
 
-source ./env/bin/activate
+# Arret immediat si le venv n a pas ete cree : sinon toutes les lignes suivantes
+# echouent une par une et l erreur ne remonte qu a la toute fin.
+# Cause habituelle : python3-venv absent (apt casse).
+if [ ! -x /home/pi/parfum_2/env/bin/python ]; then
+    echo 'ECHEC : le venv n a pas ete cree (env/bin/python absent).'
+    echo '        sudo apt install -y python3-venv puis relancer.'
+    exit 1
+fi
+
+# Pas de "source ./env/bin/activate" : c est une bashism qui casse sous dash
+# (sh ./install.sh) et c est inutile, tout ci-dessous utilise des chemins absolus.
 
 # pip de Buster (18.x) est trop vieux pour lire les wheels recents.
 # 24.0 = derniere version compatible Python 3.7.

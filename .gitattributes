@@ -1,0 +1,5 @@
+# Les scripts shell et Python tournent sur le Pi : toujours des fins de ligne LF.
+# Sans ca, une edition sous Windows produit du CRLF et dash echoue avec
+# "Syntax error: end of file unexpected (expecting then)".
+*.sh text eol=lf
+*.py text eol=lf
