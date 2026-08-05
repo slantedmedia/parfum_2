@@ -33,17 +33,24 @@ SOUNDS = {
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
 # Le script tourne deja en root. Si ogg123 est muet mais paplay marche, changer cette ligne.
 #
-# ALSA_DEV : sortie audio forcee. Le defaut d'ALSA est casse ici
+# ALSA_DEV : sortie audio forcee. Le defaut d'ALSA est souvent casse sur Pi
 # ("Unknown PCM cards.pcm.front") -> on nomme la carte explicitement.
-# D'apres "aplay -l" sur ce Pi : carte 0 = HDMI, carte 1 = Headphones (jack 3.5mm).
 #
-# plughw et pas hw : hw exige le taux d'echantillonnage exact du fichier et
-# renvoie "no such device" / "cannot open" si la carte ne le supporte pas.
-# plughw insere la conversion automatique de format.
-# Alternatives : "plughw:0,0" (HDMI), "default", ou None (defaut ALSA).
-ALSA_DEV = "plughw:1,0"  # jack 3.5mm
+# Trouver la bonne valeur avec "aplay -l" (les numeros changent d'un Pi a l'autre) :
+#   deux cartes -> carte 0 = HDMI, carte 1 = Headphones  => "plughw:1,0"
+#   une carte   -> peri. 0 = jack, 1/2 = HDMI            => "plughw:0,0"
+# Tester avant : sudo ogg123 -q -a plughw:1,0 sounds/T00.wav
+#
+# plughw et pas hw : hw exige le format exact du fichier et echoue sinon,
+# plughw insere la conversion automatique.
+# Mettre None pour laisser ALSA choisir.
+ALSA_DEV = "plughw:2,0"
 
-PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-o", f"dev:{ALSA_DEV}"] if ALSA_DEV else [])
+# -a : option dediee au peripherique de sortie. Ne PAS utiliser
+# "-o dev:..." : -o attend des paires cle=valeur, et "dev:plughw:1,0" est mal
+# analyse ("Unknown parameter 1") puis ignore -> ALSA retombe sur le
+# peripherique "front" qui n'existe pas sur un Pi.
+PLAYER = ["ogg123", "-q"] + (["-d", "alsa", "-a", ALSA_DEV] if ALSA_DEV else [])
 
 # Pas de env= : ogg123 parle directement a ALSA en root. L'ancien DISPLAY /
 # XDG_RUNTIME_DIR servait uniquement a PulseAudio sous sudo.
