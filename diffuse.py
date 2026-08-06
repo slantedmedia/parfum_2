@@ -37,7 +37,7 @@ STOP_PIN = 27
 # True  = repos HIGH, appui LOW (cablage normal vers GND, comme les 10 autres)
 # False = repos LOW, appui HIGH (bouton normalement ferme / cable vers 3.3V)
 # Si le son ne s'arrete qu'au relachement, c'est que cette valeur est inversee.
-STOP_ACTIF_BAS = True
+STOP_ACTIF_BAS = False
 
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
