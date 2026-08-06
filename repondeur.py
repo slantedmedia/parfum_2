@@ -123,7 +123,7 @@ def main():
             for ligne in cartes.stdout.splitlines():
                 if ligne.startswith("card "):
                     print("   ", ligne)
-            print("    -> corriger ALSA_DEV en tete de diffuse.py")
+            print("    -> corriger ALSA_DEV en tete de repondeur.py")
 
     stop_txt = f" + stop sur GPIO{STOP_PIN}" if STOP_PIN else ""
     print(f"Ecoute de {len(SOUNDS)} boutons{stop_txt}... CTRL+C pour arreter.")

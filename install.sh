@@ -49,7 +49,7 @@ fi
 
 # Verification : sans ca le script affiche "Finish" meme quand pip ou apt a echoue.
 # On teste les deux moities : le module Python ET le lecteur audio.
-# RPi.GPIO est le seul module externe importe par diffuse.py (board/neopixel
+# RPi.GPIO est le seul module externe importe par repondeur.py (board/neopixel
 # servaient aux anciens scripts LED et ne sont plus utilises).
 ERREUR=0
 
