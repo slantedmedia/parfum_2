@@ -33,17 +33,20 @@ SOUNDS = {
 # autres (broche -> bouton -> GND). Mettre None pour le desactiver.
 STOP_PIN = 27
 
-# Cablage du bouton stop. Determine A LA FOIS la resistance interne et le front
-# qui declenche : les deux doivent aller ensemble, sinon la broche reste collee
-# a une valeur et seul le relachement produit une impulsion.
+# Bouton stop : resistance interne ET niveau d'appui, reglables separement.
+# Les deux sont independants : selon le cablage, la seule resistance qui "voit"
+# le bouton n'est pas forcement celle qu'on deduirait du niveau d'appui.
 #
-#   True  : bouton -> masse (GND).  Repos = 1, appui = 0.  PUD_UP,   front 1->0
-#   False : bouton -> 3.3V.         Repos = 0, appui = 1.  PUD_DOWN, front 0->1
+# Trouver les valeurs avec le probe du readme (4 mesures) :
+#   - STOP_PULL      : la resistance pour laquelle repos et appui DIFFERENT
+#   - STOP_NIVEAU_APPUI : la valeur lue pendant l'appui avec cette resistance
 #
-# Verifier avec le probe (voir readme) : si la broche affiche 1 au repos ->
-# True. Si elle affiche 0 au repos et 1 pendant l'appui -> False.
-# Les Pi de ce projet ne sont pas tous cables pareil : verifier sur chaque Pi.
-STOP_ACTIF_BAS = False
+# Cablages courants :
+#   bouton -> GND         : PULL="up",   NIVEAU=0
+#   bouton -> 3.3V        : PULL="down", NIVEAU=1
+#   ce Pi (GND + 3.3V)    : PULL="up",   NIVEAU=1
+STOP_PULL = "up"  # "up" ou "down"
+STOP_NIVEAU_APPUI = 1  # 0 ou 1
 
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
@@ -112,10 +115,8 @@ def main():
     for pin in SOUNDS:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     if STOP_PIN:
-        # La resistance doit tirer vers l'etat de repos, l'inverse de l'appui :
-        # bouton vers la masse -> PUD_UP, bouton vers 3.3V -> PUD_DOWN.
         GPIO.setup(STOP_PIN, GPIO.IN,
-                   pull_up_down=GPIO.PUD_UP if STOP_ACTIF_BAS else GPIO.PUD_DOWN)
+                   pull_up_down=GPIO.PUD_UP if STOP_PULL == "up" else GPIO.PUD_DOWN)
 
     for path in sorted(set(SOUNDS.values())):
         if not os.path.exists(path):
@@ -144,11 +145,12 @@ def main():
             cur = {p: GPIO.input(p) for p in broches}
             appuis = transitions(prev, cur)
 
-            # Le bouton stop peut etre actif haut : dans ce cas c'est la
-            # transition inverse (LOW -> HIGH) qui correspond a l'appui.
-            if STOP_PIN and not STOP_ACTIF_BAS:
+            # Le stop est detecte selon son propre niveau d'appui, independamment
+            # de transitions() qui ne connait que le front 1->0.
+            if STOP_PIN:
                 appuis = [p for p in appuis if p != STOP_PIN]
-                if prev[STOP_PIN] == 0 and cur[STOP_PIN] == 1:
+                if (prev[STOP_PIN] != STOP_NIVEAU_APPUI
+                        and cur[STOP_PIN] == STOP_NIVEAU_APPUI):
                     appuis.append(STOP_PIN)
 
             # Le stop est traite en premier et hors du "un seul par scan" :
