@@ -33,11 +33,11 @@ SOUNDS = {
 # autres (broche -> bouton -> GND). Mettre None pour le desactiver.
 STOP_PIN = 27
 
-# Polarite du bouton stop.
-# True  = repos HIGH, appui LOW (cablage normal vers GND, comme les 10 autres)
-# False = repos LOW, appui HIGH (bouton normalement ferme / cable vers 3.3V)
-# Si le son ne s'arrete qu'au relachement, c'est que cette valeur est inversee.
-STOP_ACTIF_BAS = False
+# Front qui declenche le stop (le pull interne est toujours PUD_UP).
+# True  = declenche sur HIGH->LOW, soit a l'appui  (bouton normalement ouvert)
+# False = declenche sur LOW->HIGH, soit au relachement, ou a l'appui si le
+#         bouton est normalement ferme (repos = masse, appui = circuit ouvert)
+STOP_ACTIF_BAS = True
 
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
@@ -106,9 +106,11 @@ def main():
     for pin in SOUNDS:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     if STOP_PIN:
-        # Pull oppose a l'etat de repos, sinon la broche flotte.
-        GPIO.setup(STOP_PIN, GPIO.IN,
-                   pull_up_down=GPIO.PUD_UP if STOP_ACTIF_BAS else GPIO.PUD_DOWN)
+        # Toujours PUD_UP : le bouton relie la broche a la masse, comme les
+        # autres. Avec PUD_DOWN la broche resterait a 0 en permanence et seul
+        # le relachement produirait une breve impulsion -> le son s'arretait
+        # au relachement au lieu de l'appui.
+        GPIO.setup(STOP_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     for path in sorted(set(SOUNDS.values())):
         if not os.path.exists(path):
