@@ -33,11 +33,17 @@ SOUNDS = {
 # autres (broche -> bouton -> GND). Mettre None pour le desactiver.
 STOP_PIN = 27
 
-# Front qui declenche le stop (le pull interne est toujours PUD_UP).
-# True  = declenche sur HIGH->LOW, soit a l'appui  (bouton normalement ouvert)
-# False = declenche sur LOW->HIGH, soit au relachement, ou a l'appui si le
-#         bouton est normalement ferme (repos = masse, appui = circuit ouvert)
-STOP_ACTIF_BAS = True
+# Cablage du bouton stop. Determine A LA FOIS la resistance interne et le front
+# qui declenche : les deux doivent aller ensemble, sinon la broche reste collee
+# a une valeur et seul le relachement produit une impulsion.
+#
+#   True  : bouton -> masse (GND).  Repos = 1, appui = 0.  PUD_UP,   front 1->0
+#   False : bouton -> 3.3V.         Repos = 0, appui = 1.  PUD_DOWN, front 0->1
+#
+# Verifier avec le probe (voir readme) : si la broche affiche 1 au repos ->
+# True. Si elle affiche 0 au repos et 1 pendant l'appui -> False.
+# Les Pi de ce projet ne sont pas tous cables pareil : verifier sur chaque Pi.
+STOP_ACTIF_BAS = False
 
 # ponytail: liste argv, pas shell=True et pas de sudo -- sinon terminate() tue le shell
 # (ou sudo, qui ne transmet pas SIGTERM) et l'interruption du son ne marche pas.
@@ -106,11 +112,10 @@ def main():
     for pin in SOUNDS:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     if STOP_PIN:
-        # Toujours PUD_UP : le bouton relie la broche a la masse, comme les
-        # autres. Avec PUD_DOWN la broche resterait a 0 en permanence et seul
-        # le relachement produirait une breve impulsion -> le son s'arretait
-        # au relachement au lieu de l'appui.
-        GPIO.setup(STOP_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # La resistance doit tirer vers l'etat de repos, l'inverse de l'appui :
+        # bouton vers la masse -> PUD_UP, bouton vers 3.3V -> PUD_DOWN.
+        GPIO.setup(STOP_PIN, GPIO.IN,
+                   pull_up_down=GPIO.PUD_UP if STOP_ACTIF_BAS else GPIO.PUD_DOWN)
 
     for path in sorted(set(SOUNDS.values())):
         if not os.path.exists(path):
