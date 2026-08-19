@@ -11,22 +11,20 @@ except ImportError:
 # Dossier des sons, relatif a ce fichier : marche quel que soit l utilisateur
 # (/home/pi/parfum_2 comme /home/treeosk/parfum_2) et depuis n importe quel cwd.
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sounds")
-SHARED = f"{BASE}/T05.wav"  # boutons 5 a 9
 
-# Broche BCM -> fichier son (boutons du telephone).
-# Boutons 0-4 : un son chacun. Boutons 5-9 : T05.wav pour tous.
+# Broche BCM -> fichier son. Boutons numerotes 1 a 9, un son chacun.
+# GPIO26 est libre (ancien bouton 0, supprime).
 # NB: ces fichiers sont en Ogg malgre l'extension .wav -> ogg123 les lit, aplay non.
 SOUNDS = {
-    5: f"{BASE}/T00.wav",  # bouton 0
-    6: f"{BASE}/T01.wav",  # bouton 1
-    12: f"{BASE}/T02.wav",  # bouton 2
-    13: f"{BASE}/T03.wav",  # bouton 3
-    16: f"{BASE}/T04.wav",  # bouton 4
-    19: SHARED,  # bouton 5
-    20: SHARED,  # bouton 6
-    24: SHARED,  # bouton 7
-    25: SHARED,  # bouton 8
-    26: SHARED,  # bouton 9
+    5: f"{BASE}/bouton1.wav",
+    6: f"{BASE}/bouton2.wav",
+    12: f"{BASE}/bouton3.wav",
+    13: f"{BASE}/bouton4.wav",
+    16: f"{BASE}/bouton5.wav",
+    19: f"{BASE}/bouton6.wav",
+    20: f"{BASE}/bouton7.wav",
+    24: f"{BASE}/bouton8.wav",
+    25: f"{BASE}/bouton9.wav",
 }
 
 # Bouton stop : coupe le son en cours et n'en lance aucun. Cable comme les
@@ -58,7 +56,7 @@ STOP_NIVEAU_APPUI = 1  # 0 ou 1
 # Trouver la bonne valeur avec "aplay -l" (les numeros changent d'un Pi a l'autre) :
 #   deux cartes -> carte 0 = HDMI, carte 1 = Headphones  => "plughw:1,0"
 #   une carte   -> peri. 0 = jack, 1/2 = HDMI            => "plughw:0,0"
-# Tester avant : sudo ogg123 -q -a plughw:1,0 sounds/T00.wav
+# Tester avant : sudo ogg123 -q -a plughw:1,0 sounds/bouton1.wav
 #
 # plughw et pas hw : hw exige le format exact du fichier et echoue sinon,
 # plughw insere la conversion automatique.
@@ -181,9 +179,10 @@ if __name__ == "__main__":
         assert transitions({5: 1}, {5: 0}) == [5]  # appui -> declenche
         assert transitions({5: 0}, {5: 0}) == []  # maintenu -> pas de repetition
         assert transitions({5: 0}, {5: 1}) == []  # relache -> rien
-        assert len(SOUNDS) == 10  # 10 boutons
-        assert len(set(SOUNDS.values())) == 6  # T00-T05
-        assert len([p for p, s in SOUNDS.items() if s == SHARED]) == 5  # boutons 5-9
+        assert len(SOUNDS) == 9  # 9 boutons
+        assert len(set(SOUNDS.values())) == 9  # un son distinct par bouton
+        assert 26 not in SOUNDS  # GPIO26 libere (ancien bouton 0)
+        assert SOUNDS[25].endswith("bouton9.wav")  # derniere broche -> derniere piste
         assert STOP_PIN not in SOUNDS  # le bouton stop ne joue aucun son
         stop()  # sans rien en cours : ne doit pas lever
         print("selftest OK")
