@@ -13,7 +13,7 @@ except ImportError:
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sounds")
 
 # Broche BCM -> fichier son. Boutons numerotes 1 a 9, un son chacun.
-# GPIO26 est libre (ancien bouton 0, supprime).
+# GPIO24/25 sont libres (anciens boutons 8 et 9).
 # NB: ces fichiers sont en Ogg malgre l'extension .wav -> ogg123 les lit, aplay non.
 SOUNDS = {
     5: f"{BASE}/bouton1.wav",
@@ -23,8 +23,8 @@ SOUNDS = {
     16: f"{BASE}/bouton5.wav",
     19: f"{BASE}/bouton6.wav",
     20: f"{BASE}/bouton7.wav",
-    24: f"{BASE}/bouton8.wav",
-    25: f"{BASE}/bouton9.wav",
+    26: f"{BASE}/bouton8.wav",
+    21: f"{BASE}/bouton9.wav",
 }
 
 # Bouton stop : coupe le son en cours et n'en lance aucun. Cable comme les
@@ -181,8 +181,8 @@ if __name__ == "__main__":
         assert transitions({5: 0}, {5: 1}) == []  # relache -> rien
         assert len(SOUNDS) == 9  # 9 boutons
         assert len(set(SOUNDS.values())) == 9  # un son distinct par bouton
-        assert 26 not in SOUNDS  # GPIO26 libere (ancien bouton 0)
-        assert SOUNDS[25].endswith("bouton9.wav")  # derniere broche -> derniere piste
+        assert SOUNDS[26].endswith("bouton8.wav")
+        assert SOUNDS[21].endswith("bouton9.wav")
         assert STOP_PIN not in SOUNDS  # le bouton stop ne joue aucun son
         stop()  # sans rien en cours : ne doit pas lever
         print("selftest OK")

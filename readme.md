@@ -152,10 +152,10 @@ Chaque bouton relie sa broche GPIO à la **masse** (pull-up interne, appui = LOW
 | 5 | 16 | `bouton5.wav` |
 | 6 | 19 | `bouton6.wav` |
 | 7 | 20 | `bouton7.wav` |
-| 8 | 24 | `bouton8.wav` |
-| 9 | 25 | `bouton9.wav` |
+| 8 | 26 | `bouton8.wav` |
+| 9 | 21 | `bouton9.wav` |
 
-**GPIO 26 est libre** : c'était le bouton 0, supprimé. Pour rajouter un bouton, ajouter sa
+**GPIO 24 et 25 sont libres** : c'étaient les boutons 8 et 9, déplacés. Pour rajouter un bouton, ajouter sa
 ligne au dictionnaire `SOUNDS` en tête de [repondeur.py](repondeur.py) — tout le reste du
 script s'adapte au nombre d'entrées.
 
@@ -290,7 +290,7 @@ Tester le câblage sans le son — toutes les broches à `1` au repos, `0` à l'
 ```bash
 sudo env/bin/python -c "
 import RPi.GPIO as G,time
-P=[5,6,12,13,16,19,20,24,25,27]
+P=[5,6,12,13,16,19,20,26,21,27]
 G.setmode(G.BCM); G.setwarnings(False)
 [G.setup(p,G.IN,pull_up_down=G.PUD_UP) for p in P]
 while True:
