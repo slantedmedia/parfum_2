@@ -10,7 +10,7 @@ except ImportError:
 
 # Dossier des sons, relatif a ce fichier : marche quel que soit l utilisateur
 # (/home/pi/parfum_2 comme /home/treeosk/parfum_2) et depuis n importe quel cwd.
-BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sounds")
+BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sounds", "english")
 
 # Broche BCM -> fichier son. Boutons numerotes 1 a 9, un son chacun.
 # GPIO24/25 sont libres (anciens boutons 8 et 9).
@@ -56,7 +56,7 @@ STOP_NIVEAU_APPUI = 1  # 0 ou 1
 # Trouver la bonne valeur avec "aplay -l" (les numeros changent d'un Pi a l'autre) :
 #   deux cartes -> carte 0 = HDMI, carte 1 = Headphones  => "plughw:1,0"
 #   une carte   -> peri. 0 = jack, 1/2 = HDMI            => "plughw:0,0"
-# Tester avant : sudo ogg123 -q -a plughw:1,0 sounds/bouton1.wav
+# Tester avant : sudo ogg123 -q -a plughw:1,0 sounds/english/bouton1.wav
 #
 # plughw et pas hw : hw exige le format exact du fichier et echoue sinon,
 # plughw insere la conversion automatique.
