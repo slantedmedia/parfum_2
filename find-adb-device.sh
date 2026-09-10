@@ -6,6 +6,8 @@ set -euo pipefail
 
 PORT="${ADB_PORT:-5555}"
 INTERVAL="${RETRY_INTERVAL:-5}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STARTUP_SCRIPT="${STARTUP_SCRIPT:-$SCRIPT_DIR/start_up.sh}"
 NMAP_OPTS=(-Pn -n -p "$PORT" --open)
 
 need() {
@@ -96,7 +98,12 @@ main() {
           echo
           echo "OK — connecté à ${ip}:${PORT}"
           adb devices -l
-          exit 0
+          if [[ ! -x "$STARTUP_SCRIPT" ]]; then
+            echo "Erreur: script introuvable ou non exécutable: $STARTUP_SCRIPT" >&2
+            exit 1
+          fi
+          echo "Lancement de $STARTUP_SCRIPT …"
+          exec "$STARTUP_SCRIPT"
         fi
       done
       echo "Connexion ADB échouée pour les cibles trouvées."
