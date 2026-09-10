@@ -37,7 +37,7 @@ def listen_for_button_press():
         button_event_pattern_04 = re.compile(r'.*treeosk-btn-0?4.*')
         button_event_pattern_17 = re.compile(r'.*treeosk-btn-17.*')
         button_event_pattern_22 = re.compile(r'.*treeosk-btn-22.*')
-        button_event_pattern_27 = re.compile(r'.*treeosk-btn-27.*')
+        button_event_pattern_24 = re.compile(r'.*treeosk-btn-24.*')
 
         while True:
             line = process.stdout.readline()
@@ -52,9 +52,9 @@ def listen_for_button_press():
                 print(f"Événement détecté : {line.strip()}")
                 handle_button_event_22(line.strip())
             
-            if button_event_pattern_27.search(line):
+            if button_event_pattern_24.search(line):
                 print(f"Événement détecté : {line.strip()}")
-                handle_button_event_27(line.strip())
+                handle_button_event_24(line.strip())
             
             if button_event_pattern_04.search(line):
                 print(f"Événement détecté : {line.strip()}")
@@ -139,7 +139,7 @@ def handle_button_event_22(event_line):
     else:
         print("Ignoré : Appui détecté trop rapidement.")
 
-def handle_button_event_27(event_line):
+def handle_button_event_24(event_line):
     global last_event_time, event_handled
 
     current_time = time.time()
@@ -148,14 +148,14 @@ def handle_button_event_27(event_line):
             last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
             event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
             print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 27...")
+            print("Envoi d'une impulsion sur la broche 24...")
             pixels.fill((255, 255, 255))
             pixels.show()
-            GPIO.setup(27, GPIO.OUT)  # Broche  configurée comme sortie
+            GPIO.setup(24, GPIO.OUT)  # Broche  configurée comme sortie
             time.sleep(5)
             pixels.fill((0, 0, 0))
             pixels.show()
-            GPIO.cleanup(27)
+            GPIO.cleanup(24)
             clear_logcat()
 
         else:
