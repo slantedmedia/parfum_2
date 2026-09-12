@@ -36,7 +36,7 @@ PULSE = 5  # duree de l'impulsion, en secondes
 #
 # Dans le doute, tester les deux : ACTIF = 0 puis ACTIF = 1, avec
 #   sudo env/bin/python parfum_2.py --test 17
-ACTIF = 0
+ACTIF = 1
 REPOS = 1 - ACTIF
 COOLDOWN = 2  # temps mini entre deux impulsions d'une meme broche
 
