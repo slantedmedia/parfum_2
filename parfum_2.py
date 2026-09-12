@@ -22,7 +22,7 @@ except ImportError:  # machine de dev / --selftest
 # GPIO autorises a etre pulses depuis le log. Liste blanche volontaire :
 # une ligne de log malformee ne doit pas pouvoir piloter n'importe quelle
 # broche (I2C, SPI, l'alim des LEDs...). Ajouter un bouton = ajouter son GPIO.
-PINS = {4, 17, 22, 27}
+PINS = {4, 17, 22, 24}
 
 PULSE = 5  # duree de l'impulsion, en secondes
 COOLDOWN = 2  # temps mini entre deux impulsions d'une meme broche
@@ -127,7 +127,8 @@ if __name__ == "__main__":
         assert pin_de_ligne("I/kiosk(931): treeosk-btn-17 pressed") == 17
         assert pin_de_ligne("I/kiosk(931): treeosk-btn-04 pressed") == 4  # zero
         assert pin_de_ligne("D/wifi(12): scan results") is None
-        assert pin_de_ligne("treeosk-btn-99") is None  # hors liste blanche
+        assert pin_de_ligne("treeosk-btn-24") == 24  # ex-27, voir 802032c
+        assert pin_de_ligne("treeosk-btn-27") is None  # hors liste blanche
         assert pin_de_ligne("treeosk-btn-") is None  # ligne tronquee
         print("selftest OK")
         sys.exit(0)
