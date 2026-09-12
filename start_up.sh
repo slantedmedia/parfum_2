@@ -106,4 +106,7 @@ echo "Tablette connectee :"
 adb devices -l
 
 # exec : le python remplace ce shell, cron/systemd surveillent le bon process.
-exec "$PYTHON" "$DIR/parfum_2.py"
+# -u : sortie non bufferisee. Sans ca, les lignes "impulsion sur GPIOxx"
+# restent bloquees dans le tampon de Python (8 Ko) quand la sortie part dans
+# boot.log au lieu d'un terminal -- le fichier parait vide pendant des heures.
+exec "$PYTHON" -u "$DIR/parfum_2.py"
