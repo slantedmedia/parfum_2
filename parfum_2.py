@@ -1,176 +1,134 @@
-import subprocess
+# -*- coding: utf-8 -*-
+"""Ecoute la console d'une tablette Android branchee en USB (adb logcat).
+
+Chaque ligne contenant "treeosk-btn-N" declenche une impulsion de PULSE
+secondes sur le GPIO N (numerotation BCM), LEDs allumees pendant l'impulsion.
+
+Le script se connecte tout seul : il attend la tablette au demarrage et se
+reconnecte si on la debranche. Plus besoin d'attendre adb dans start_up.sh.
+"""
 import re
-import RPi.GPIO as GPIO
+import subprocess
+import sys
 import time
-import board
-import neopixel
 
-# Configuration des GPIO
-GPIO.setmode(GPIO.BCM)  # Mode BCM pour la numérotation des broches
-GPIO.setwarnings(False)
-pixel_pin = board.D18
-num_pixels = 100
-ORDER = neopixel.GRB
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=False, pixel_order=ORDER)
+try:
+    import RPi.GPIO as GPIO
+    import board
+    import neopixel
+except ImportError:  # machine de dev / --selftest
+    GPIO = board = neopixel = None
 
-pixels.fill((0, 0, 0))
-pixels.show()
+# GPIO autorises a etre pulses depuis le log. Liste blanche volontaire :
+# une ligne de log malformee ne doit pas pouvoir piloter n'importe quelle
+# broche (I2C, SPI, l'alim des LEDs...). Ajouter un bouton = ajouter son GPIO.
+PINS = {4, 17, 22, 27}
 
-# Dernière détection pour éviter les répétitions
-last_event_time = 0  # Stocke l'horodatage du dernier événement
-event_cooldown = 2  # Temps minimum (en secondes) entre deux impulsions
-event_handled = set()  # Ensemble pour mémoriser les événements traités
+PULSE = 5  # duree de l'impulsion, en secondes
+COOLDOWN = 2  # temps mini entre deux impulsions d'une meme broche
 
-# Exécuter la commande adb logcat -c
+# "treeosk-btn-17" -> 17. Les zeros devant sont toleres (btn-04 == btn-4).
+BTN = re.compile(r"treeosk-btn-0*(\d+)")
+
+NUM_PIXELS = 100
+
+pixels = None
+
+
+def init_leds():
+    global pixels
+    pixels = neopixel.NeoPixel(board.D18, NUM_PIXELS, brightness=0.1,
+                               auto_write=False, pixel_order=neopixel.GRB)
+    leds((0, 0, 0))
+
+
+def leds(couleur):
+    pixels.fill(couleur)
+    pixels.show()
+
+
 def clear_logcat():
+    """Vide le backlog : sans ca, la ligne qu'on vient de traiter peut
+    reapparaitre et redeclencher l'impulsion."""
+    subprocess.run(['adb', 'logcat', '-c'])
+
+
+def pulse(pin):
+    print(f"treeosk-btn-{pin} -> impulsion sur GPIO{pin}")
+    leds((255, 255, 255))
+    GPIO.setup(pin, GPIO.OUT)
+    time.sleep(PULSE)
+    leds((0, 0, 0))
+    GPIO.cleanup(pin)
+    clear_logcat()
+
+
+def pin_de_ligne(ligne):
+    """Ligne de log -> GPIO a pulser, ou None si rien a faire."""
+    m = BTN.search(ligne)
+    if not m:
+        return None
+    pin = int(m.group(1))
+    return pin if pin in PINS else None
+
+
+def ecoute():
+    """Une session adb : attend la tablette, lit le log jusqu'a deconnexion."""
+    # wait-for-device bloque tant qu'aucune tablette n'est branchee (et la
+    # premiere commande adb demarre le serveur adb au passage).
+    print("Attente de la tablette Android...")
+    subprocess.run(['adb', 'wait-for-device'])
+    clear_logcat()  # on ignore l'historique d'avant le demarrage
+    proc = subprocess.Popen(['adb', 'logcat'], stdout=subprocess.PIPE,
+                            stderr=subprocess.DEVNULL, text=True,
+                            errors="replace")
+    print("Connecte. Ecoute des evenements... CTRL+C pour arreter.")
     try:
-        subprocess.run(['adb', 'logcat', '-c'], check=True)
-        print("Les logs ont été effacés avec succès.")
-    except subprocess.CalledProcessError as e:
-        print(f"Erreur lors de l'exécution de la commande: {e}")
-
-def listen_for_button_press():
-    try:
-        process = subprocess.Popen(['adb', 'logcat'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print("Écoute des événements ADB... Appuyez sur CTRL+C pour arrêter.")
-
-        button_event_pattern_04 = re.compile(r'.*treeosk-btn-0?4.*')
-        button_event_pattern_17 = re.compile(r'.*treeosk-btn-17.*')
-        button_event_pattern_22 = re.compile(r'.*treeosk-btn-22.*')
-        button_event_pattern_27 = re.compile(r'.*treeosk-btn-27.*')
-
-        while True:
-            line = process.stdout.readline()
-            if not line:
-                break
-
-            if button_event_pattern_17.search(line):
-                print(f"Événement détecté : {line.strip()}")
-                handle_button_event_17(line.strip())
-            
-            if button_event_pattern_22.search(line):
-                print(f"Événement détecté : {line.strip()}")
-                handle_button_event_22(line.strip())
-            
-            if button_event_pattern_27.search(line):
-                print(f"Événement détecté : {line.strip()}")
-                handle_button_event_27(line.strip())
-            
-            if button_event_pattern_04.search(line):
-                print(f"Événement détecté : {line.strip()}")
-                handle_button_event_04(line.strip())
-
-    except KeyboardInterrupt:
-        print("Arrêt de l'écoute des événements.")
+        # readline et pas "for ligne in proc.stdout" : l'iteration bufferise
+        # par blocs et les appuis arrivent en retard, par paquets.
+        for ligne in iter(proc.stdout.readline, ""):
+            pin = pin_de_ligne(ligne)
+            if pin is None:
+                continue
+            if time.time() - dernier.get(pin, 0.0) < COOLDOWN:
+                print("Ignore : appui trop rapproche.")
+                continue
+            dernier[pin] = time.time()
+            pulse(pin)
     finally:
-        # Arrête le processus adb logcat proprement
-        process.terminate()
-        GPIO.cleanup()  # Nettoyer les GPIO à la fin du script
+        proc.terminate()
 
-def handle_button_event_17(event_line):
-    global last_event_time, event_handled
 
-    current_time = time.time()
-    if current_time - last_event_time >= event_cooldown:
-        if event_line not in event_handled:
-            last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
-            event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
-            print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 17...")
-            pixels.fill((255, 255, 255))
-            pixels.show()
-            GPIO.setup(17, GPIO.OUT)  # Broche 17 configurée comme sortie
-            time.sleep(5)
-            pixels.fill((0, 0, 0))
-            pixels.show()
-            GPIO.cleanup(17)
-            clear_logcat()
+dernier = {}  # GPIO -> horodatage de la derniere impulsion
 
-        else:
-            print("Ignoré : L'événement a déjà été traité.")
-    else:
-        print("Ignoré : Appui détecté trop rapidement.")
 
-def handle_button_event_04(event_line):
-    global last_event_time, event_handled
+def main():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    init_leds()
+    try:
+        while True:
+            ecoute()
+            # Sortie de boucle = tablette debranchee ou adb tue. On repart sur
+            # wait-for-device, avec une pause pour ne pas tourner a vide.
+            print("Tablette deconnectee, reconnexion...")
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Arret.")
+    except FileNotFoundError:
+        print("adb introuvable : sudo apt install -y adb")
+    finally:
+        leds((0, 0, 0))
+        GPIO.cleanup()
 
-    current_time = time.time()
-    if current_time - last_event_time >= event_cooldown:
-        if event_line not in event_handled:
-            last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
-            event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
-            print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 04...")
-            pixels.fill((255, 255, 255))
-            pixels.show()
-            GPIO.setup(4, GPIO.OUT)  # Broche 04 configurée comme sortie
-            time.sleep(5)
-            pixels.fill((0, 0, 0))
-            pixels.show()
-            GPIO.cleanup(4)
-            clear_logcat()
-
-        else:
-            print("Ignoré : L'événement a déjà été traité.")
-    else:
-        print("Ignoré : Appui détecté trop rapidement.")
-
-def handle_button_event_22(event_line):
-    global last_event_time, event_handled
-
-    current_time = time.time()
-    if current_time - last_event_time >= event_cooldown:
-        if event_line not in event_handled:
-            last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
-            event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
-            print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 22...")
-            pixels.fill((255, 255, 255))
-            pixels.show()
-            GPIO.setup(22, GPIO.OUT)  # Broche 22 configurée comme sortie
-            time.sleep(5)
-            pixels.fill((0, 0, 0))
-            pixels.show()
-            GPIO.cleanup(22)
-            clear_logcat()
-
-        else:
-            print("Ignoré : L'événement a déjà été traité.")
-    else:
-        print("Ignoré : Appui détecté trop rapidement.")
-
-def handle_button_event_27(event_line):
-    global last_event_time, event_handled
-
-    current_time = time.time()
-    if current_time - last_event_time >= event_cooldown:
-        if event_line not in event_handled:
-            last_event_time = current_time  # Mettre à jour l'horodatage du dernier événement
-            event_handled.add(event_line)  # Ajouter cet événement à l'ensemble des événements traités
-            print("Bouton pressé détecté ! Vous pouvez ajouter une action ici.")
-            print("Envoi d'une impulsion sur la broche 27...")
-            pixels.fill((255, 255, 255))
-            pixels.show()
-            GPIO.setup(27, GPIO.OUT)  # Broche  configurée comme sortie
-            time.sleep(5)
-            pixels.fill((0, 0, 0))
-            pixels.show()
-            GPIO.cleanup(27)
-            clear_logcat()
-
-        else:
-            print("Ignoré : L'événement a déjà été traité.")
-    else:
-        print("Ignoré : Appui détecté trop rapidement.")
-
-def reset_event_handled():
-    global event_handled
-    # Réinitialiser l'ensemble des événements traités après un certain délai
-    current_time = time.time()
-    if current_time - last_event_time >= event_cooldown:
-        event_handled.clear()  # Réinitialiser l'ensemble
 
 if __name__ == "__main__":
-    while True:
-        listen_for_button_press()
-        reset_event_handled()  # Réinitialise les événements après chaque boucle pour détecter les nouveaux événements
+    if "--selftest" in sys.argv:
+        assert pin_de_ligne("I/kiosk(931): treeosk-btn-17 pressed") == 17
+        assert pin_de_ligne("I/kiosk(931): treeosk-btn-04 pressed") == 4  # zero
+        assert pin_de_ligne("D/wifi(12): scan results") is None
+        assert pin_de_ligne("treeosk-btn-99") is None  # hors liste blanche
+        assert pin_de_ligne("treeosk-btn-") is None  # ligne tronquee
+        print("selftest OK")
+        sys.exit(0)
+    main()
