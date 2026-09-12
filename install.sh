@@ -11,7 +11,10 @@ sudo apt update && sudo apt install -y libopenblas-dev libatlas-base-dev gfortra
 # "fatal error: Python.h: No such file or directory"
 sudo apt install -y python3-dev build-essential
 
-sudo apt install -y git adb
+# nmap : start_up.sh scanne le reseau local pour trouver la tablette Android
+# (port ADB 5555) quand elle n'est pas branchee en USB. Sans lui, le script
+# s'arrete des la premiere ligne avec "nmap est requis mais introuvable".
+sudo apt install -y git adb nmap
 
 # ogg123 : lecture des .ogg (aplay ne sait pas decoder l'ogg)
 sudo apt install -y vorbis-tools
@@ -61,6 +64,18 @@ fi
 
 # ogg123 vient d apt (vorbis-tools) : si apt est casse, il manque et le kiosque
 # detecte les boutons sans jamais emettre de son.
+if ! command -v nmap >/dev/null 2>&1; then
+    echo 'ECHEC : nmap introuvable -> start_up.sh ne trouvera pas la tablette en Wi-Fi.'
+    echo '        sudo apt install -y nmap'
+    ERREUR=1
+fi
+
+if ! command -v adb >/dev/null 2>&1; then
+    echo 'ECHEC : adb introuvable -> aucune ecoute de la tablette Android.'
+    echo '        sudo apt install -y adb'
+    ERREUR=1
+fi
+
 if ! command -v ogg123 >/dev/null 2>&1; then
     echo 'ECHEC : ogg123 introuvable -> pas de son.'
     echo '        Verifier apt puis : sudo apt install -y vorbis-tools'
