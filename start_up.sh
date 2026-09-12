@@ -21,6 +21,11 @@ if [ "$(id -u)" -ne 0 ]; then
     exec sudo -- "$0" "$@"
 fi
 
+# cron ne donne que PATH=/usr/bin:/bin aux taches : "ip" (/usr/sbin/ip) serait
+# introuvable et la detection du sous-reseau echouerait en boucle. On le fixe ici
+# pour ne pas dependre de qui lance le script, ni de sudo qui le corrige au passage.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 PORT="${ADB_PORT:-5555}"
 INTERVAL="${RETRY_INTERVAL:-5}"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
